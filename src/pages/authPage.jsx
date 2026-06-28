@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
 import Modal from '../components/Modal';
+import { useContext } from 'react';
+import { ContextStore } from '../context/ContextStore';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from '../config/firebase';
 
 const AuthForm = () => {
     const [isSignUp, setIsSignUp] = useState(false);
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({ name: '', email: '', password: '' });
     //   modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     // client or freelancer
     const [userType, setUserType] = useState('');
+    // context
+    const { user, setUser } = useContext(ContextStore);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,10 +27,12 @@ const AuthForm = () => {
         if (type === 'freelancer') {
             console.log('Freelancer selected');
             setIsModalOpen(false);
+            navigate('/setup-freelancer-profile')
         }
         else if (type === 'client') {
             console.log('Client selected');
             setIsModalOpen(false);
+            navigate('/setup-user-profile')
         }
     }
 
@@ -35,10 +43,12 @@ const AuthForm = () => {
             if (isSignUp) {
                 const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
                 console.log("User registered:", userCredential.user);
+                setUser(userCredential.user);
                 setIsModalOpen(true);
             } else {
                 const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
                 console.log("User signed in:", userCredential.user);
+                setUser(userCredential.user);
                 setIsModalOpen(true);
             }
         } catch (error) {
@@ -54,6 +64,7 @@ const AuthForm = () => {
         try {
             const result = await signInWithPopup(auth, provider);
             console.log("Google User signed in:", result.user);
+            setUser(result.user);
             setIsModalOpen(true);
         } catch (error) {
             console.error("Google Auth Error:", error);
@@ -95,7 +106,7 @@ const AuthForm = () => {
                                     label="Full Name"
                                     name="name"
                                     type="text"
-                                    placeholder="John Doe"
+                                    placeholder="Worker Bee"
                                     value={formData.name}
                                     onChange={handleChange}
                                     Icon={User}
@@ -159,7 +170,7 @@ const AuthForm = () => {
                                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
                                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                             </svg>
-                            Google Workspace
+                            Continue with Google
                         </button>
 
                         {/* Dynamic Footer Switcher */}
